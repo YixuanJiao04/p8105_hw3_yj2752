@@ -7,5 +7,48 @@ output:github_document
 ```{r}
 library(tidyverse)
 library(patchwork)
+library(p8105.datasets)
 ```
 
+### Problem1
+Load instacart dataset.
+```{r}
+data("instacart")
+```
+See ordered aisle.
+```{r}
+instacart %>%
+  count(aisle) %>%
+  arrange(desc(n))
+```
+Plot aisle with number of items.
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(aisle = fct_reorder(aisle, n)) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() + 
+  labs(title = "Number of items ordered in each aisle") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+Order number of products in each of the three aisles.
+```{r}
+instacart %>% 
+  filter(aisle == "baking ingredients"|aisle == "dog food care"| aisle == "packaged vegetables fruits") %>% 
+  group_by(aisle) %>%
+  count(product_name) %>%
+  mutate(rank = min_rank(desc(n))) %>%
+  filter(rank < 4) %>%
+  arrange(aisle,rank)
+```
+Show mean hour of order in each day of two products.
+```{r}
+instacart %>%
+  filter(product_name=="Pink Lady Apples"|product_name =="Coffee Ice Cream") %>%
+  group_by(product_name,order_dow) %>%
+  summarise(mean_hod = mean(order_hour_of_day)) %>%
+  rename('Day' = order_dow) %>%
+  pivot_wider(names_from = Day,values_from = mean_hod)
+  #spread(key = Day, value = mean_hod)
+```
