@@ -52,3 +52,11 @@ instacart %>%
   pivot_wider(names_from = Day,values_from = mean_hod)
   #spread(key = Day, value = mean_hod)
 ```
+
+
+### Problem2
+Firstly, load the dataset using `read_csv()`
+```{r}
+accel_data = read_csv('data/accel_data.csv')
+```
+
