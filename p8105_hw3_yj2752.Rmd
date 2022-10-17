@@ -8,6 +8,7 @@ output: github_document
 library(tidyverse)
 library(patchwork)
 library(p8105.datasets)
+library(ggridges)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -120,14 +121,19 @@ accel_data_tidy %>%
   geom_boxplot()
 ```
 
-Use `ggplot()` to draw a plot showing the activity of each minute during a 24-day. The color of the plot represents the day of the week. Based on the graph, I can see there are several peaks over the day that indicates the individual tends to move more during those moment. Also, different days of the week might have different peak pattern (difference of peak in weekends). The first peak is around 400 minutes(possibly wake up and morning routine), 2nd peak is around noon (this peak is majorly for Sunday, and this might be the Sunday wake up time), 3rd and 4th peak is around 1000 and 1200. The activity at night(0-300) is less than the day time because of the sleep.
+Use `ggplot()` to draw a line plot and a scatterplot showing the activity of each minute during a 24-day. The color of the plot represents the day of the week. Based on the graph, I can see there are several peaks over the day that indicates the individual tends to move more during those moment. Also, different days of the week might have different peak pattern (difference of peak in weekends). The first peak is around 400 minutes(possibly wake up and morning routine), 2nd peak is around noon (this peak is majorly for Sunday, and this might be the Sunday wake up time), 3rd and 4th peak is around 1000 and 1200. The activity at night(0-300) is less than the day time because of the sleep.
+```{r}
+accel_data_tidy %>%
+  ggplot(aes(x = minute,y = activity_count, group = interaction(week,day), color = day)) +
+  geom_line(alpha = 0.3) +
+  labs(x = 'Time(minute)', y = 'Activity Count', title = 'Activity Count of the 24-hour Day')
+```
 ```{r}
 accel_data_tidy %>%
   ggplot(aes(x = minute,y = activity_count, color = day)) +
-  geom_point(aes(alpha = 0.5)) +
+  geom_point(alpha = 0.3) +
   labs(x = 'Time(minute)', y = 'Activity Count', title = 'Activity Count of the 24-hour Day')
 ```
-
 ### Problem3
 Load ny_noaa data
 ```{r}
@@ -139,7 +145,7 @@ skimr::skim(ny_noaa)
 ```
 Temperature(max and min), precipitation, and snow are measured by different station over decades. There are in total `r ncol(ny_noaa)` variables and `r nrow(ny_noaa)` observations. There are 3 columns character type (temperature should be transfer to numeric type). There are many missing values in columns except id and date and that might cause problem when generating the plot. 
 
-Cleaning the table by converting tmax and tmin in to numeric type and seperate date into 3 columns(year,month,day).
+Cleaning the table by converting tmax, tmin and year into numeric type and seperate date into 3 columns(year,month,day). tmax, tmin and prcp are set to normal unit for us to read (degree of C and mm).
 ```{r}
 ny_noaa_clean <- 
   ny_noaa %>%
@@ -158,16 +164,36 @@ getmode <- function(v) {
 }
 getmode(ny_noaa_clean$snow)
 ```
-
+The plot of average tmax over years for all stations are plot by `geom_line()`. Each color line represents a different station. Even though there is few outliers (14°C in July or -15°C in January, etc.) exist, the average max temperature in January and July constantly fluctuates in their certain range. As the graph shown, the average max temperature of July is overall higher than January, and January's average max temperature fluctuates in a larger range than July.
 ```{r}
 ny_noaa_clean %>%
   filter(month %in% c('01','07')) %>%
   mutate(month = ifelse(month == '01','January','July')) %>%
   group_by(id,year,month) %>%
   summarise(mean_tmax = mean(tmax,na.rm = TRUE)) %>%
-  ggplot(aes(x = year, y = mean_tmax,group = id)) +
-  geom_line() +
+  ggplot(aes(x = year, y = mean_tmax,color = id)) +
+  geom_line(alpha = 0.2) +
   facet_grid(. ~ month) +
-  labs(x = 'Year', y = 'Average Maximum Temperature(°C)')
+  theme(legend.position="none",panel.spacing = unit(1, "cm")) +
+  labs(x = 'Year', 
+       y = 'Average Maximum Temperature(°C)',
+       title = 'Average Maximum Temperature(°C) of January and July Over Years')
 ```
+`patchwork` is used to combine the hex graph and the density ridges graph below.
+```{r}
+plot_tmax_tmin <- 
+  ny_noaa_clean %>%
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex() +
+  theme(legend.key.width = unit(1.2, 'cm')) +
+  labs(x = 'tmin(°C)', y = 'tmax(°C)', title = 'tmax vs. tmin')
 
+plot_snow <- 
+  ny_noaa_clean %>%
+  filter(snow < 100 & snow >0) %>%
+  ggplot(aes(x = snow, y = year, group = year)) +
+  geom_density_ridges() +
+  labs(x = 'Snowfall(mm)', y = 'Year',title = 'Distribution of Snowfall Values')
+
+plot_tmax_tmin + plot_snow
+```
