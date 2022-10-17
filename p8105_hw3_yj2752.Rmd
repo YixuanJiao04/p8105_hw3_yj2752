@@ -143,9 +143,11 @@ Cleaning the table by converting tmax and tmin in to numeric type and seperate d
 ```{r}
 ny_noaa_clean <- 
   ny_noaa %>%
-  mutate(tmax = as.numeric(tmax)) %>%
-  mutate(tmin = as.numeric(tmin)) %>%
-  separate(date, c('year','month','day'), sep = '-')
+  mutate(tmax = as.numeric(tmax)/10) %>%
+  mutate(tmin = as.numeric(tmin)/10) %>%
+  mutate(prcp = prcp/10) %>%
+  separate(date, c('year','month','day'), sep = '-') %>%
+  mutate(year = as.numeric(year))
 ```
 The most frequent observed value of snowfall is 0 since in the most of the time in a year it doesn't snow.
 ```{r}
@@ -155,5 +157,17 @@ getmode <- function(v) {
    uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 getmode(ny_noaa_clean$snow)
+```
+
+```{r}
+ny_noaa_clean %>%
+  filter(month %in% c('01','07')) %>%
+  mutate(month = ifelse(month == '01','January','July')) %>%
+  group_by(id,year,month) %>%
+  summarise(mean_tmax = mean(tmax,na.rm = TRUE)) %>%
+  ggplot(aes(x = year, y = mean_tmax,group = id)) +
+  geom_line() +
+  facet_grid(. ~ month) +
+  labs(x = 'Year', y = 'Average Maximum Temperature(°C)')
 ```
 
