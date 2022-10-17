@@ -133,5 +133,9 @@ Load ny_noaa data
 ```{r}
 data("ny_noaa")
 ```
-
+Use skimr to see the summary of the whole dataset
+```{r}
+skimr::skim(ny_noaa)
+```
+Temperature(max and min), precipitation, and snow are measured by different station over decades. There are in total `r ncol(ny_noaa)` variables and `r nrow(ny_noaa)` observations. There are 3 columns character type (temperature should be transfer to numeric type). There are many missing values in columns except id and date and that might cause problem when generating the plot. 
 
