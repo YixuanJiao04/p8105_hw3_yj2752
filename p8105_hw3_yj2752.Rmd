@@ -139,3 +139,21 @@ skimr::skim(ny_noaa)
 ```
 Temperature(max and min), precipitation, and snow are measured by different station over decades. There are in total `r ncol(ny_noaa)` variables and `r nrow(ny_noaa)` observations. There are 3 columns character type (temperature should be transfer to numeric type). There are many missing values in columns except id and date and that might cause problem when generating the plot. 
 
+Cleaning the table by converting tmax and tmin in to numeric type and seperate date into 3 columns(year,month,day).
+```{r}
+ny_noaa_clean <- 
+  ny_noaa %>%
+  mutate(tmax = as.numeric(tmax)) %>%
+  mutate(tmin = as.numeric(tmin)) %>%
+  separate(date, c('year','month','day'), sep = '-')
+```
+The most frequent observed value of snowfall is 0 since in the most of the time in a year it doesn't snow.
+```{r}
+#getmode function from tutorial https://www.tutorialspoint.com/r/r_mean_median_mode.htm
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+getmode(ny_noaa_clean$snow)
+```
+
