@@ -77,7 +77,9 @@ instacart %>%
 ### Problem2
 Firstly, load the dataset using `read_csv()`
 ```{r}
-accel_data <- read_csv('data/accel_data.csv') %>% janitor::clean_names()
+accel_data <- 
+  read_csv('data/accel_data.csv') %>% 
+  janitor::clean_names()
 ```
 Use `pivot_longer()` to make the table tidy. Column `minute` would store the information of minute and `activity_count` would store the activity count for each minute of the day. I also add a column storing the information for weekend vs. weekday, that the weekends would be stored as TRUE while weekdays as FALSE. Then I convert `day` to factor so that it could be ordered from Monday to Sunday instead of in alphabetical order. Also `minute` is converted into numeric class.
 ```{r}
@@ -100,7 +102,7 @@ accel_data_tidy %>%
   pivot_wider(names_from = day, values_from = total_activity_count) %>%
   knitr::kable(digit = 0)
 ```
-There are some data points that is special in the table. Saturdays of week 4 and 5 only have 1440 counts (exact 1 for each minute all day) and that could be possibly caused by operation error. And the first day has far less counts comparing with other Mondays, that could possibly mean the man start wearing the accelerator half way of the day. So I would filtering those points off when doing the analysis by setting threshold total_activity_count > 100000.
+There are some data points that is special in the table. Saturdays of week 4 and 5 only have 1440 counts (exact 1 for each minute all day) and that could be possibly caused by operation error. And the first day has far less counts comparing with other Mondays, that could possibly mean the man start wearing the accelerator half way of the day. So I would filtering those points off when doing the analysis by setting threshold `total_activity_count` > 100000.
 
 Grouping by weekdays and weekends, we can see the average activity count of weekend is slightly less than weekday. 
 ```{r message=FALSE}
@@ -145,7 +147,7 @@ skimr::skim(ny_noaa)
 ```
 Temperature(max and min), precipitation, and snow are measured by different station over decades. There are in total `r ncol(ny_noaa)` variables and `r nrow(ny_noaa)` observations. There are 3 columns character type (temperature should be transfer to numeric type). There are many missing values in columns except id and date and that might cause problem when generating the plot. 
 
-Cleaning the table by converting tmax, tmin and year into numeric type and seperate date into 3 columns(year,month,day). tmax, tmin and prcp are set to normal unit for us to read (degree of C and mm).
+Cleaning the table by converting `tmax`, `tmin` and `year` into numeric type and separate date into 3 columns(`year`,`month`, and `day`). `tmax`, `tmin` and `prcp` are set to normal unit for us to read (degree of C and mm).
 ```{r}
 ny_noaa_clean <- 
   ny_noaa %>%
@@ -164,7 +166,7 @@ getmode <- function(v) {
 }
 getmode(ny_noaa_clean$snow)
 ```
-The plot of average tmax over years for all stations are plot by `geom_line()`. Each color line represents a different station. Even though there is few outliers (14°C in July or -15°C in January, etc.) exist, the average max temperature in January and July constantly fluctuates in their certain range. As the graph shown, the average max temperature of July is overall higher than January, and January's average max temperature fluctuates in a larger range than July.
+The plot of average `tmax` over years for all stations are plot by `geom_line()`. Each color line represents a different station. Even though there is few outliers (eg. 14°C in July or -15°C in January) exist, the average max temperature in January and July constantly fluctuates in their certain range. As the graph shown, the average max temperature of July is overall higher than January, and January's average max temperature fluctuates in a larger range than July.
 ```{r}
 ny_noaa_clean %>%
   filter(month %in% c('01','07')) %>%
