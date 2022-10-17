@@ -8,6 +8,24 @@ output:github_document
 library(tidyverse)
 library(patchwork)
 library(p8105.datasets)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 ### Problem1
@@ -59,7 +77,7 @@ Firstly, load the dataset using `read_csv()`
 ```{r}
 accel_data <- read_csv('data/accel_data.csv') %>% janitor::clean_names()
 ```
-Use `pivot_longer()` to make the table tidy. Column `minute` would store the information of minute and `activity_count` would store the activity count for each minute of the day. I also add a column storing the information for weekend vs. weekday, that the weekends would be stored as TRUE while weekdays as FALSE.
+Use `pivot_longer()` to make the table tidy. Column `minute` would store the information of minute and `activity_count` would store the activity count for each minute of the day. I also add a column storing the information for weekend vs. weekday, that the weekends would be stored as TRUE while weekdays as FALSE. Then I convert `day` to factor so that it could be ordered from Monday to Sunday instead of in alphabetical order. Also `minute` is converted into numeric class.
 ```{r}
 accel_data_tidy <- 
   accel_data %>%
@@ -67,6 +85,39 @@ accel_data_tidy <-
                names_to = 'minute',
                names_prefix = 'activity_',
                values_to = 'activity_count') %>%
-  mutate(weekend = ifelse(day %in% c('Saturday','Sunday'),TRUE,FALSE))
+  mutate(weekend = ifelse(day %in% c('Saturday','Sunday'),TRUE,FALSE)) %>%
+  mutate(day = factor(day,levels = c('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'))) %>%
+  mutate(minute = as.numeric(minute))
 ```
+In total there are `r ncol(accel_data_tidy)` variables and `r nrow(accel_data_tidy)` observations.
+Then, a table containing total activity count of each day is created. First use `group_by()` to select each single day by grouping both `week` and `day`, then use `summarise()` to add up all activity counts in one day. Lastly, use `pivot_wider()` to transfer the table into format that is more readable to human.
+```{r}
+accel_data_tidy %>%
+  group_by(week,day) %>%
+  summarise(total_activity_count = sum(activity_count)) %>%
+  pivot_wider(names_from = day, values_from = total_activity_count) %>%
+  knitr::kable(digit = 0)
+```
+There are some data points that is special in the table. Saturdays of week 4 and 5 only have 1440 counts (exact 1 for each minute all day) and that could be possibly caused by operation error. And the first day has far less counts comparing with other Mondays, that could possibly mean the man start wearing the accelerator half way of the day. So I would filtering those points off when doing the analysis by setting threshold total_activity_count > 100000.
+
+Grouping by weekdays and weekends, we can see the averge activity count of weekend is slightly less than weekday. 
+```{r}
+accel_data_tidy %>%
+  group_by(week,day,weekend) %>%
+  summarise(total_activity_count = sum(activity_count)) %>%
+  filter(total_activity_count > 100000) %>%
+  group_by(weekend) %>%
+  summarise(mean_activity_count = mean(total_activity_count))
+```
+By plotting a box plot showing each day's distribution of total activity counts, the trend seems to be that the total activity count would reach the peak when Friday of each week.
+```{r}
+accel_data_tidy %>%
+  group_by(week,day) %>%
+  summarise(total_activity_count = sum(activity_count)) %>%
+  filter(total_activity_count > 100000) %>%
+  ggplot(aes(x = day,y = total_activity_count)) +
+  geom_boxplot()
+```
+
+
 
