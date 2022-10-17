@@ -1,7 +1,7 @@
 ---
-title:"p8105_hw3_yj2752"
-author:Yixuan Jiao
-output:github_document
+title: "p8105_hw3_yj2752"
+author: "Yixuan Jiao"
+output: github_document
 ---
 
 ```{r}
@@ -50,6 +50,7 @@ instacart %>%
   labs(title = "Number of items ordered in each aisle") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
+
 Order number of products in each of the three aisles.
 ```{r}
 instacart %>% 
@@ -100,8 +101,8 @@ accel_data_tidy %>%
 ```
 There are some data points that is special in the table. Saturdays of week 4 and 5 only have 1440 counts (exact 1 for each minute all day) and that could be possibly caused by operation error. And the first day has far less counts comparing with other Mondays, that could possibly mean the man start wearing the accelerator half way of the day. So I would filtering those points off when doing the analysis by setting threshold total_activity_count > 100000.
 
-Grouping by weekdays and weekends, we can see the averge activity count of weekend is slightly less than weekday. 
-```{r}
+Grouping by weekdays and weekends, we can see the average activity count of weekend is slightly less than weekday. 
+```{r message=FALSE}
 accel_data_tidy %>%
   group_by(week,day,weekend) %>%
   summarise(total_activity_count = sum(activity_count)) %>%
@@ -110,13 +111,21 @@ accel_data_tidy %>%
   summarise(mean_activity_count = mean(total_activity_count))
 ```
 By plotting a box plot showing each day's distribution of total activity counts, the trend seems to be that the total activity count would reach the peak when Friday of each week.
-```{r}
+```{r message=FALSE}
 accel_data_tidy %>%
   group_by(week,day) %>%
   summarise(total_activity_count = sum(activity_count)) %>%
   filter(total_activity_count > 100000) %>%
   ggplot(aes(x = day,y = total_activity_count)) +
   geom_boxplot()
+```
+
+Use `ggplot()` to draw a plot showing the activity of each minute during a 24-day. The color of the plot represents the day of the week. Based on the graph, I can see there are several peaks over the day that indicates the individual tends to move more during those moment. Also, different days of the week might have different peak pattern (difference of peak in weekends). The first peak is around 400 minutes(possibly wake up and morning routine), 2nd peak is around noon (this peak is majorly for Sunday, and this might be the Sunday wake up time), 3rd and 4th peak is around 1000 and 1200. The activity at night(0-300) is less than the day time because of the sleep.
+```{r}
+accel_data_tidy %>%
+  ggplot(aes(x = minute,y = activity_count, color = day)) +
+  geom_point(aes(alpha = 0.5)) +
+  labs(x = 'Time(minute)', y = 'Activity Count', title = 'Activity Count of the 24-hour Day')
 ```
 
 
