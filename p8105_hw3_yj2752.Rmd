@@ -128,5 +128,10 @@ accel_data_tidy %>%
   labs(x = 'Time(minute)', y = 'Activity Count', title = 'Activity Count of the 24-hour Day')
 ```
 
+### Problem3
+Load ny_noaa data
+```{r}
+data("ny_noaa")
+```
 
 
